@@ -27,11 +27,6 @@ and redirects them to a proxy of choice.
 Test Usage with AFFIXs:
 -----------------------
 1. In terminal 1:
-    1.1. $ source sandboxer.sh
-    1.2. $ cd sandbox
-    1.3. $ python smart_shim_proxy.py
+    1.1. $ ./sandboxer.sh
 2. In terminal 2:
-    2.1. $ make
-    2.2. $ source load_shim_proxy.sh
-    2.3. Run any network application, for example 'wget'
-       $ wget www.google.com
+    2.1. $ ./test1.sh

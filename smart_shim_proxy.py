@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python
 
 # Import all the repy functionalities.
 
