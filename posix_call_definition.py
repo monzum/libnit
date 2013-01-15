@@ -190,6 +190,7 @@ def call_socket(arg_list_str):
     return ('', error_dict[err_name])
   
   # Everything is done, so we return with no error.
+  # NOTE: -1 used to indicate no error; seems a little confusing.
   return (str(new_sock), -1)
 
 
@@ -265,6 +266,7 @@ def call_connect(arg_list_str):
   except UnimplementedError:
     return ('', error_dict["EPROTONOSUPPORT"])
   except SyscallError, (err_call, err_name, err_msg):
+    print( "{0}, {1}, {2}".format( err_call, err_name, err_msg ) )
     return ('', error_dict[err_name])
 
   return (str(return_val), -1)

@@ -27,6 +27,6 @@ and redirects them to a proxy of choice.
 Test Usage with AFFIXs:
 -----------------------
 1. In terminal 1:
-    1.1. $ ./sandboxer.sh
+    1.1. $ ./shim_sandboxer.sh
 2. In terminal 2:
-    2.1. $ ./test1.sh
+    2.1. $ ./test_sandboxer.sh

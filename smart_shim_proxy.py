@@ -55,6 +55,7 @@ def master_server():
 
   tcpserversock = listenforconnection(proxy_ip, proxy_port)
   print "[ShimProxy] Starting Master Server on %s:%d" % (proxy_ip, proxy_port)
+  print ''
 
   while True:
     # Receive a new connection.
@@ -62,6 +63,7 @@ def master_server():
 
     # Once a new connection is made, launch a new thread to handle the connection.
     print "[ShimProxy] Received connection from %s:%d" % (remote_ip, remote_port)
+    print ''
     createthread(handle_new_sock_connection(mastersock))
 
 
@@ -123,7 +125,6 @@ def handle_new_sock_connection(mastersock):
       
         print "[NetRecv] Call '%s' for sock '%s' with args '%s'" % (call_func, str(thissockfd), call_args)
 
-
         # Check that if it is a legal Posix call. If it is then we call the 
         # appropriate function to handle it.
         if call_func not in libc_function_dict.keys():
@@ -145,10 +146,12 @@ def handle_new_sock_connection(mastersock):
         packed_msg = struct_pack(struct_format, err_val, return_val)        
 
         print "[NetSend] Return result for call '%s' for sock '%s': '%s':%d" % (call_func, str(thissockfd), return_val, err_val)
+        print ''
 
         block_call(mastersock.send, packed_msg)
       except (SocketClosedRemote, SocketClosedLocal), err:
         print "[ShimProxy] Socket closed detected for sock '%s'." % str(thissockfd)
+        print ''
 
         # Check to see if we know the fd of this socket.
         if thissockfd:

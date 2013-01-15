@@ -3,4 +3,5 @@
 *.so
 *.swp
 
-sandbox/
+shim_sandbox/
+test_sandbox/
