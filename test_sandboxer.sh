@@ -13,7 +13,8 @@ cd test_sandbox
 # compile system call interposition library
 make
 # compile unit tests
-# NOTE: incorporate tests into Makefile
+# TODO: incorporate tests into Makefile
+gcc test_gethostbyname.c -o test_gethostbyname
 gcc test_send.c -o test_send
 
 # interpose selected system calls
@@ -21,4 +22,6 @@ shimlib_path=`pwd`/libnetworkinterpose.so
 export LD_PRELOAD=$LD_PRELOAD:$shimlib_path
 
 # run unit tests
-./test_send
+# BUG: If we do not run test_gethostbyname, test_send passes!
+strace -e trace=network ./test_gethostbyname www.google.com
+strace -e trace=network ./test_send 74.125.224.72 80
