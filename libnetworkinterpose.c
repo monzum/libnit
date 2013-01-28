@@ -22,6 +22,8 @@
 int RECV_SIZE = 2048;
 int ERRBADFD = 9;
 
+int DEBUG = 0;
+
 /* A dictionary that keeps track of translation from proxy fd
  * to repy fd. 
  */
@@ -174,8 +176,12 @@ void forward_api_to_proxy(int sockfd, char* func_call, char* arg_list, char* res
   /* Copy over the data to the structure. */
   strcpy(sockstruct.func_name, func_call);
   strcpy(sockstruct.arg_list, arg_list);
-  printf("\nCalling function '%s'.\n", func_call);
-  fflush(stdout);
+
+  if (DEBUG) {
+    printf("\nCalling function '%s'.\n", func_call);
+    fflush(stdout);
+  }
+
   /* Send the structure over to the Repy proxy server. */
   int bytes_sent = (*libc_send)(sockfd, &sockstruct, sizeof(sockstruct), 0);
 
@@ -389,8 +395,10 @@ int connect(int sockfd, const struct sockaddr *address, socklen_t address_len)
   char recv_buf[RECV_SIZE];
   int err_val;
   
-  printf("Arg list for connect: %s", arg_list);
-  fflush(stdout);
+  if (DEBUG) {
+    printf("Arg list for connect: %s", arg_list);
+    fflush(stdout);
+  }
 
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "connect", arg_list, recv_buf, &err_val);
@@ -442,9 +450,6 @@ int listen(int sockfd, int backlog)
 
 ssize_t send(int sockfd, const void *message, size_t length, int flags)
 {
-  printf("Got into send.\n");
-  fflush(stdout);
-
   char arg_list[(int)length + 20];
   char buf[20] = "";
 
@@ -472,8 +477,6 @@ ssize_t send(int sockfd, const void *message, size_t length, int flags)
 
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "send", arg_list, recv_buf, &err_val);
-  printf("Returning from send.\n");
-  fflush(stdout);
 
   if (err_val < 0)
     return (ssize_t) atoi(recv_buf); 
@@ -488,9 +491,6 @@ ssize_t send(int sockfd, const void *message, size_t length, int flags)
 ssize_t sendto(int sockfd, const void *message, size_t length, int flags,
              const struct sockaddr *dest_addr, socklen_t dest_len)
 {
-
-  printf("Got into sendto");
-  fflush(stdout);	
   char arg_list[(int)length + 50];
   char buf[20] = "";
 
@@ -529,9 +529,6 @@ ssize_t sendto(int sockfd, const void *message, size_t length, int flags,
 
 ssize_t recv(int sockfd, void *buffer, size_t length, int flags)
 {
-  printf("Got into recv.\n");
-  fflush(stdout);
-
   char arg_list[20] = "";
   char buf[20] = "";
 
@@ -558,9 +555,7 @@ ssize_t recv(int sockfd, void *buffer, size_t length, int flags)
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "recv", arg_list, recv_buf, &err_val);
 
-  printf("Returning from recv.\n");
-  fflush(stdout);
-    /* Check to make sure there was no error. */
+  /* Check to make sure there was no error. */
   if (err_val < 0) {
     strcpy(buffer, recv_buf);
     return (ssize_t) strlen(recv_buf);
@@ -577,9 +572,6 @@ ssize_t recv(int sockfd, void *buffer, size_t length, int flags)
 ssize_t recvfrom(int sockfd, void *buffer, size_t length,
              int flags, struct sockaddr *address, socklen_t *address_len)
 {
-
-  printf("Got into recvfrom");
-  fflush(stdout);
   char arg_list[50] = "";
   char buf[20] = "";
 
@@ -664,9 +656,12 @@ ssize_t write(int sockfd, const void *message, size_t length)
 }
 
 
-
+/*
 ssize_t read(int sockfd, void *buffer, size_t length)
 {
+  printf("In function read. Calling it\n");
+  fflush(stdout);
+
   char arg_list[20] = "";
   char buf[20] = "";
 
@@ -689,7 +684,7 @@ ssize_t read(int sockfd, void *buffer, size_t length)
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "read", arg_list, recv_buf, &err_val);
 
-    /* Check to make sure there was no error. */
+  // Check to make sure there was no error.
   if (err_val < 0) {
     strcpy(buffer, recv_buf);
     return (ssize_t) strlen(recv_buf);
@@ -700,89 +695,78 @@ ssize_t read(int sockfd, void *buffer, size_t length)
   }
 
 }
-
+*/
 
 
 
 // ################ SOCKET OPTION CALLS ##########################
 
-
-int fcntl(int sockfd, int cmd, ...)
-{
-  // BUG: If the sockfd is not a network socket (if it is a file socket)
-  // Then this will segfault and crash.
-  printf("Got into fcntl\n");
-  fflush(stdout);
-
-  char arg_list[50] = "";
-  char buf[20] = "";
-
-  int repy_sock_fd = socket_fd_dict[sockfd % MAX_SOCK_FD];
-
-  my_itoa(repy_sock_fd, buf, 10);
-  strcat(arg_list, buf);
-  strcat(arg_list, ",");
-
-  memset(buf, 0, strlen(buf));
-  my_itoa(cmd, buf, 10);
-  strcat(arg_list, buf);
-
-  printf("Got after strcat.\n");
-  fflush(stdout);
-
-  /* Since we have a variable argument '...' we do not know
-   * the length or what the arguments are. Therefore we are
-   * going to use the variable argument library stdarg.h to
-   * retrieve all the arguments.
-   */
-  va_list var_arg_list;
-  int arg_val;
-
-  /* Start processing the variable arguments. */
-  va_start(var_arg_list, cmd);
-
-  printf("Got after va_start.\n");
-  fflush(stdout);
-
-  /* Go through the arg_list and retrieve all the various
-   * arguments that were provided. Assume that all the 
-   * variables are of type 'int'.
-   */
-  while((arg_val = va_arg(var_arg_list, int)) != NULL){
-    strcat(arg_list, ",");
-    printf("Got here2");
-    fflush(stdout);
-    /* Convert and add all the arguments to the list. */
-    memset(buf, 0, strlen(buf));
-    my_itoa(arg_val, buf, 10);
-    strcat(arg_list, buf);
-  }
-
-  printf("After while loop.\n");
-  fflush(stdout);
-
-  /* End processing the variable arguments. */
-  va_end(var_arg_list);
-  printf("%s", arg_list);
-  printf("After va_end.\n");
-  fflush(stdout);
-
-  char recv_buf[RECV_SIZE];
-  int err_val;
-
-  // Send the info to the Repy proxy server.
-  forward_api_to_proxy(sockfd, "fcntl", arg_list, recv_buf, &err_val);
-
-  printf("Returning from fcntl.\n");
-  fflush(stdout);
-
-  if (err_val < 0)
-    return atoi(recv_buf); 
-  else
-    return -1;
-
-  
-}
+ 
+//int fcntl(int sockfd, int cmd, ...)
+//{
+//  // BUG: If the sockfd is not a network socket (if it is a file socket)
+//  // Then this will segfault and crash.
+//
+//  if (DEBUG) {
+//    printf("Got into fcntl\n");
+//    fflush(stdout);
+//  }
+//
+//  char arg_list[50] = "";
+//  char buf[20] = "";
+//
+//  int repy_sock_fd = socket_fd_dict[sockfd % MAX_SOCK_FD];
+//
+//  my_itoa(repy_sock_fd, buf, 10);
+//  strcat(arg_list, buf);
+//  strcat(arg_list, ",");
+//
+//  memset(buf, 0, strlen(buf));
+//  my_itoa(cmd, buf, 10);
+//  strcat(arg_list, buf);
+//
+//  /* Since we have a variable argument '...' we do not know
+//   * the length or what the arguments are. Therefore we are
+//   * going to use the variable argument library stdarg.h to
+//   * retrieve all the arguments.
+//   */
+//  va_list var_arg_list;
+//  int arg_val;
+//
+//  /* Start processing the variable arguments. */
+//  va_start(var_arg_list, cmd);
+//
+//
+//  /* Go through the arg_list and retrieve all the various
+//   * arguments that were provided. Assume that all the 
+//   * variables are of type 'int'.
+//   */
+//  while((arg_val = va_arg(var_arg_list, int)) != NULL){
+//    strcat(arg_list, ",");
+//
+//    /* Convert and add all the arguments to the list. */
+//    memset(buf, 0, strlen(buf));
+//    my_itoa(arg_val, buf, 10);
+//    strcat(arg_list, buf);
+//  }
+//
+//
+//  /* End processing the variable arguments. */
+//  va_end(var_arg_list);
+//
+//  char recv_buf[RECV_SIZE];
+//  int err_val;
+//
+//  // Send the info to the Repy proxy server.
+//  forward_api_to_proxy(sockfd, "fcntl", arg_list, recv_buf, &err_val);
+//
+//  if (err_val < 0)
+//    return atoi(recv_buf); 
+//  else
+//    return -1;
+//
+//  
+//}
 
 
 
@@ -791,8 +775,6 @@ int fcntl(int sockfd, int cmd, ...)
 int getsockopt(int sockfd, int level, int option_name,
 	       void *option_value, socklen_t *option_len)
 {
-  printf("Got here3");
-  fflush(stdout);
   char arg_list[20] = "";
   char buf[10] = "";
 
@@ -832,8 +814,6 @@ int getsockopt(int sockfd, int level, int option_name,
 
 int setsockopt(int sockfd, int level, int option_name, const void *option_value, socklen_t option_len)
 {
-  printf("Got here4");
-  fflush(stdout);
   char arg_list[30] = "";
   char buf[10] = "";
 
@@ -938,12 +918,10 @@ int setsockopt(int sockfd, int level, int option_name, const void *option_value,
 
 
 
-
+/*
 int select(int nfds, fd_set *readfds, fd_set *writefds, 
 	   fd_set *errorfds, struct timeval *timeout)
 {
-  printf("Got into select\n");
-  fflush(stdout);
   char arg_list[1024] = "";
   char buf[8] = "";
 
@@ -951,23 +929,17 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
   int i;
   int fd_ready = 0;
   return nfds;
-  printf("About to forloop", i);
-  fflush(stdout);  
+
   for (i=1; i <= nfds; i++)
   {
-    printf("checking set for %d", i);
-    fflush(stdout);
     if (FD_ISSET(i, readfds)){
       fd_ready += 1;
-      printf("FD_ISSET for %d", i);
-      fflush(stdout);
     }
   }
-  printf("Got into select2\n");
-  fflush(stdout);
+
   return fd_ready;
   
-  /*
+  
   memset(arg_list, 0, strlen(arg_list));
   memset(buf, 0, strlen(buf));
 
@@ -1003,41 +975,34 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
   } 
   else
     return -1;
-  */
+ 
 }
+*/
 
-
-
+/*
 int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
-
-  printf("Got into poll\n");
-  fflush(stdout);
   char arg_list[1024] = "";
   char buf[8] = "";
 
   // Temporary solution, return everything as being ready.
   int i;
   int fd_ready = 0;
-  printf("Returning from Poll");
-  fflush(stdout);
   return 1;
-    /*
+    
   for (i=0; i <= nfds; i++)
   {
     if (FD_ISSET(i, fds))
       fd_ready += 1;
   }
-    */
+    
   //return fd_ready;
 }
-
+*/
 // ##################### CLOSE CALLS ##############################3
 
 int shutdown(int sockfd, int how)
 {
-  printf("Got into shutdown\n");
-  fflush(stdout);
   char arg_list[10] = "";
   char buf[10] = "";
 
@@ -1070,8 +1035,6 @@ int shutdown(int sockfd, int how)
 
 int close(int sockfd)
 {
-  printf("Got into close\n");
-  fflush(stdout);
 
   char arg_list[10] = "";
   char buf[10] = "";
