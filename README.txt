@@ -43,3 +43,12 @@ Test Usage with AFFIXs:
 
 5. Run any network application, for example 'wget'
    $ wget www.google.com
+
+
+
+Development usage:
+------------------
+1. In terminal 1:
+    1.1. $ ./shim_sandboxer.sh
+2. In terminal 2:
+    2.1. $ ./test_sandboxer.sh
