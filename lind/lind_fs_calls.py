@@ -239,10 +239,7 @@ def _blank_fs_init():
 # These are used to initialize and stop the system
 def persist_metadata(metadatafilename):
 
-  print( 'persist_metadata: BEFORE serializedata' )
-  # BUG: serializedata blocks/hangs
   metadatastring = serializedata(filesystemmetadata)
-  print( 'persist_metadata: AFTER serializedata' )
 
   
   # open the file (clobber) and write out the information...
@@ -250,11 +247,9 @@ def persist_metadata(metadatafilename):
     removefile(metadatafilename)
   except FileNotFoundError:
     pass
-
   metadatafo = openfile(metadatafilename,True)
   metadatafo.writeat(metadatastring,0)
   metadatafo.close()
-  print( 'persist_metadata: END' )
 
 
 
@@ -1480,8 +1475,7 @@ def close_syscall(fd):
 
   finally:
     # ... release the lock, if there is one
-    # BUG: persist_metadata blocks/hangs
-    #persist_metadata(METADATAFILENAME)
+    persist_metadata(METADATAFILENAME)
     if 'lock' in filedescriptortable[fd]:
       filedescriptortable[fd]['lock'].release()
     del filedescriptortable[fd]
