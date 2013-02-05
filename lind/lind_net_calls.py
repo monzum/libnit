@@ -359,6 +359,7 @@ def bind_syscall(fd,localip,localport):
         # all is well, continue...
         intent_to_rebind = True
       else:
+        print( 'WTF' )
         raise SyscallError('bind_syscall','EADDRINUSE',"Another socket is already bound to this address")
 
   # BUG (?): hmm, how should I support multiple interfaces?   I could either 
@@ -415,7 +416,6 @@ def connect_syscall(fd,remoteip,remoteport):
 
   filedescriptortable[fd]['last_peek'] = ''
 
-
   # What I do depends on the protocol...
   # If UDP, set the items and return
   if filedescriptortable[fd]['protocol'] == IPPROTO_UDP:
@@ -432,7 +432,6 @@ def connect_syscall(fd,remoteip,remoteport):
 
   # it's TCP!
   elif filedescriptortable[fd]['protocol'] == IPPROTO_TCP:
-
     # Am I already bound?   If not, we'll need to get an ip / port
     if 'localip' not in filedescriptortable[fd]:
       localip = getmyip()
@@ -448,6 +447,7 @@ def connect_syscall(fd,remoteip,remoteport):
 
     try:
       # BUG: The timeout it configurable, right?
+      print( "{0}, {1}, {2}, {3}".format( remoteip, remoteport, localip, localport ) )
       newsockobj = openconnection(remoteip, remoteport, localip, localport, 10)
 
     except AddressBindingError, e:
@@ -586,6 +586,8 @@ def send_syscall(fd, message, flags):
 
   if filedescriptortable[fd]['protocol'] != IPPROTO_TCP and filedescriptortable[fd]['protocol'] != IPPROTO_UDP:
     raise SyscallError("send_syscall","EOPNOTSUPP","send not supported on this protocol.")
+
+  print( "send_syscall: {0}, {1}, {2}".format( fd, message, flags ) )
     
   # I'll check this anyways, because I later might have multiple protos 
   # supported

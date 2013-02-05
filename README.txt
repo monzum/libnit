@@ -26,20 +26,7 @@ and redirects them to a proxy of choice.
 
 Test Usage with AFFIXs:
 -----------------------
-1. Create a new directory and copy over all the files in the
-   lind/ and repy/ directory. 
-
-2. Copy over the two files 
-   smart_shim_proxy.py and posix_call_definition.py in the 
-   new directory. 
-
-3. Open up a new terminal and change to the new directory
-   that was created. Then run the file smart_shim_proxy.py
-   $ python smart_shim_proxy.py
-
-4. From the first terminal run the script load_shim_proxy.sh
-   using the 'source' command.
-   $ source load_shim_proxy.sh
-
-5. Run any network application, for example 'wget'
-   $ wget www.google.com
+1. In terminal 1:
+    1.1. $ ./shim_sandboxer.sh
+2. In terminal 2:
+    2.1. $ ./test_sandboxer.sh

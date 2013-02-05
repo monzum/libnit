@@ -143,6 +143,7 @@ int initmastersock = -1;
  */
 void my_itoa(int value, char* buff, int protocol)
 {
+  // NOTE: should be using snprintf
   sprintf(buff, "%d", value);
 }
 
@@ -289,7 +290,8 @@ int socket(int domain, int type, int protocol)
 
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "socket", arg_list, recv_buf, &err_val);
-  
+
+  // NOTE: This seems questionable. Should at least be set to watch for -1.
   if (err_val < 0) {
     int repy_sock_fd = atoi(recv_buf);
     socket_fd_dict[sockfd % MAX_SOCK_FD] = repy_sock_fd;
@@ -452,28 +454,32 @@ ssize_t send(int sockfd, const void *message, size_t length, int flags)
 {
   char arg_list[(int)length + 20];
   char buf[20] = "";
-
+  char recv_buf[RECV_SIZE];
+  int err_val;
   int repy_sock_fd = socket_fd_dict[sockfd % MAX_SOCK_FD];
+
+  printf("Got into send.\n"); fflush(stdout);
+  printf( "message, length = %s, %d\n", (char*)message, length ); fflush( stdout );
 
   memset(arg_list, 0, strlen(arg_list));
   memset(buf, 0, strlen(buf));
+  printf( "arg_list = '%s'\n", arg_list ); fflush( stdout );
+
   my_itoa(repy_sock_fd, buf, 10);
   strcat(arg_list, buf);
   strcat(arg_list, ",");
+  printf( "arg_list = '%s'\n", arg_list ); fflush( stdout );
 
   my_itoa(flags, buf, 10);
   strcat(arg_list, buf);
   strcat(arg_list, ",");
-
+  printf( "arg_list = '%s'\n", arg_list ); fflush( stdout );
 
   /* We add the message as the last element in the 
    * arg list because the message might contain any character,
    * including the delimeter. */
   strncat(arg_list, (char*)message, length);
-
-
-  char recv_buf[RECV_SIZE];
-  int err_val;
+  printf( "arg_list = '%s'\n", arg_list ); fflush( stdout );
 
   // Send the info to the Repy proxy server
   forward_api_to_proxy(sockfd, "send", arg_list, recv_buf, &err_val);
@@ -482,7 +488,6 @@ ssize_t send(int sockfd, const void *message, size_t length, int flags)
     return (ssize_t) atoi(recv_buf); 
   else
     return -1;
-  
 }
 
 
@@ -1050,7 +1055,13 @@ int close(int sockfd)
   int err_val;
 
   // Send the info to the Repy proxy server
+  printf("close: sockfd = %d\n", sockfd);
+  fflush(stdout);
+  printf("close: before forward_api_to_proxy\n");
+  fflush(stdout);
   forward_api_to_proxy(sockfd, "close", arg_list, recv_buf, &err_val);
+  printf("close: after forward_api_to_proxy\n");
+  fflush(stdout);
 
   if (err_val == ERRBADFD)
     return (*libc_close)(sockfd);
