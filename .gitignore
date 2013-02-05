@@ -1,0 +1,7 @@
+*.pyc
+*.session
+*.so
+*.swp
+
+shim_sandbox/
+test_sandbox/
