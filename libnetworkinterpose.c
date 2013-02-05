@@ -984,11 +984,6 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
   char arg_list[1024] = "";
   char buf[8] = "";
-
-  // Temporary solution, return everything as being ready.
-  int i;
-  int fd_ready = 0;
-  return 1;
     
   for (i=0; i <= nfds; i++)
   {
