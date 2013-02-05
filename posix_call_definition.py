@@ -31,6 +31,9 @@ execfile('lind_net_calls.py')
 _context = locals()
 add_dy_support(_context)
 
+# Import the serialize library.
+dy_import_module_symbols("serialize")
+
 # Import the shim library.
 dy_import_module_symbols("shimstackinterface")
 
@@ -40,7 +43,8 @@ dy_import_module_symbols("shimstackinterface")
 DEFAULT_TIMEOUT = 10
 
 # By default use the NoopShim.
-shim_string = "(LogShim,smart_shim_log.txt)"
+#shim_string = "(LogShim,smart_shim_log.txt)"
+shim_string = "(CompressionShim)"
 
 shim_obj = ShimStackInterface(shim_string)
 

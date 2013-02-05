@@ -55,7 +55,7 @@ def master_server():
 
   tcpserversock = listenforconnection(proxy_ip, proxy_port)
   print "[ShimProxy] Starting Master Server on %s:%d" % (proxy_ip, proxy_port)
-  print ''
+  print "[ShimProxy] Using AFFIX string: %s" % shim_string
 
   while True:
     # Receive a new connection.
